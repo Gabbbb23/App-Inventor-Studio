@@ -75,7 +75,7 @@ export function generateBky(screen) {
 }
 
 // All mutation elements in App Inventor's .bky require this xmlns
-const XMLNS = 'xmlns="http://www.w3.org/1999/xhtml"';
+const XMLNS = 'xmlns="http://www.w3.org/1999/xhtml" ';
 
 // ============================================================
 // Escape XML special characters
