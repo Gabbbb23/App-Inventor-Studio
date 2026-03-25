@@ -632,16 +632,20 @@ function generateBinaryOp(node, nextId, globalVars, resolveType) {
   const rightXml = generateExpression(node.right, nextId, globalVars, resolveType);
 
   switch (node.op) {
+    // math_add and math_multiply are multi-input blocks in App Inventor
+    // They use a mutation with items count and NUM0/NUM1 inputs
     case '+':
-      return `<block type="math_add" id="${id}">
-  <value name="A">
+      return `<block type="math_add" id="${id}" inline="false">
+  <mutation ${XMLNS}items="2"/>
+  <value name="NUM0">
     ${leftXml}
   </value>
-  <value name="B">
+  <value name="NUM1">
     ${rightXml}
   </value>
 </block>`;
 
+    // math_subtract and math_division are binary (A/B inputs, no mutation)
     case '-':
       return `<block type="math_subtract" id="${id}">
   <value name="A">
@@ -653,11 +657,12 @@ function generateBinaryOp(node, nextId, globalVars, resolveType) {
 </block>`;
 
     case '*':
-      return `<block type="math_multiply" id="${id}">
-  <value name="A">
+      return `<block type="math_multiply" id="${id}" inline="false">
+  <mutation ${XMLNS}items="2"/>
+  <value name="NUM0">
     ${leftXml}
   </value>
-  <value name="B">
+  <value name="NUM1">
     ${rightXml}
   </value>
 </block>`;
