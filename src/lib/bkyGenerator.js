@@ -272,7 +272,7 @@ function generateSetProperty(node, nextId, globalVars, resolveType) {
 
   const mutation = `<mutation ${XMLNS}component_type="${escXml(componentType)}" set_or_get="set" property_name="${escXml(node.property)}" is_generic="false" instance_name="${escXml(node.component)}"/>`;
 
-  return `<block type="component_set_get" id="${id}">
+  return `<block type="component_set_get" id="${id}" inline="false">
   ${mutation}
   <field name="COMPONENT_SELECTOR">${escXml(node.component)}</field>
   <field name="PROP">${escXml(node.property)}</field>
@@ -288,7 +288,7 @@ function generateSetVariable(node, nextId, globalVars, resolveType) {
   const valueXml = generateExpression(node.value, nextId, globalVars, resolveType);
   const varName = globalVars.has(node.name) ? `global ${node.name}` : node.name;
 
-  return `<block type="lexical_variable_set" id="${id}">
+  return `<block type="lexical_variable_set" id="${id}" inline="false">
   <field name="VAR">${escXml(varName)}</field>
   <value name="VALUE">
     ${valueXml}

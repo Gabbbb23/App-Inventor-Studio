@@ -74,12 +74,12 @@ export const TEMPLATES = [
 
 when PlusButton.Click {
   count = count + 1
-  set CountLabel.Text = count
+  set CountLabel.Text = join("", count)
 }
 
 when MinusButton.Click {
   count = count - 1
-  set CountLabel.Text = count
+  set CountLabel.Text = join("", count)
 }
 
 when ResetButton.Click {
