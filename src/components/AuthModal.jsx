@@ -64,7 +64,7 @@ export default function AuthModal({ onClose, onAuth }) {
           )}
 
           <div>
-            <label className="text-xs text-[var(--color-text-dim)] mb-1 block">Email</label>
+            <label className="text-xs text-[var(--color-text-dim)] mb-1 block">Email <span className="opacity-60">— must be a real email you can access</span></label>
             <div className="relative">
               <Mail className="w-4 h-4 text-[var(--color-text-dim)] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -73,7 +73,7 @@ export default function AuthModal({ onClose, onAuth }) {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg pl-10 pr-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
-                placeholder="you@example.com"
+                placeholder="your.real.email@gmail.com"
               />
             </div>
           </div>
