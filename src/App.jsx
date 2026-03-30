@@ -42,6 +42,7 @@ function AppInner() {
   const [user, setUser] = useState(null);
   const [saving, setSaving] = useState(false);
   const [currentProjectId, setCurrentProjectId] = useState(null);
+  const [lastSavedSnapshot, setLastSavedSnapshot] = useState(null);
   const [view, setView] = useState('design');
 
   // Listen for auth state changes
@@ -54,6 +55,10 @@ function AppInner() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  // Track unsaved changes by comparing current state to last saved snapshot
+  const currentSnapshot = JSON.stringify(appState.getProjectData());
+  const hasUnsavedChanges = user && lastSavedSnapshot !== null && currentSnapshot !== lastSavedSnapshot;
 
   // Live-parse the screen{} layout block from code to show in preview
   const codePreviewScreen = useMemo(() => {
@@ -71,6 +76,17 @@ function AppInner() {
 
   const doExport = async () => {
     try {
+      // Auto-save before exporting if signed in
+      if (user) {
+        try {
+          const projectData = appState.getProjectData();
+          const saved = await saveProject(projectData.name, projectData);
+          setCurrentProjectId(saved.id);
+          setLastSavedSnapshot(JSON.stringify(projectData));
+        } catch (e) {
+          // Save failed silently — still export
+        }
+      }
       const project = appState.getProjectData();
       await generateAia(project);
       toast('Project exported as .aia', 'success');
@@ -101,6 +117,7 @@ function AppInner() {
   const handleLoadTemplate = (template) => {
     appState.loadTemplate(template);
     setCurrentProjectId(null);
+    setLastSavedSnapshot(null);
     setShowTemplates(false);
     toast(`Loaded template: ${template.name}`, 'success');
   };
@@ -128,6 +145,7 @@ function AppInner() {
       const projectData = appState.getProjectData();
       const saved = await saveProject(projectData.name, projectData);
       setCurrentProjectId(saved.id);
+      setLastSavedSnapshot(JSON.stringify(projectData));
       toast(`Project "${projectData.name}" saved`, 'success');
     } catch (err) {
       toast('Save failed: ' + err.message, 'error');
@@ -142,6 +160,7 @@ function AppInner() {
       screens: projectData.screens,
     });
     setCurrentProjectId(projectId);
+    setLastSavedSnapshot(JSON.stringify(projectData));
     toast(`Opened "${projectData.name || projectName}"`, 'success');
   };
 
@@ -157,6 +176,7 @@ function AppInner() {
       }],
     });
     setCurrentProjectId(null);
+    setLastSavedSnapshot(null);
     toast('New project created', 'info');
   };
 
@@ -172,6 +192,7 @@ function AppInner() {
     user,
     onSignIn: () => setShowAuth(true),
     onSignOut: handleSignOut,
+    hasUnsavedChanges,
     onSave: handleSave,
     onOpenProjects: () => {
       if (!user) { setShowAuth(true); return; }

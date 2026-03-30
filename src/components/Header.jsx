@@ -2,7 +2,7 @@ import { Download, Layout, Code, FolderOpen, Smartphone, LayoutGrid, BookOpen, S
 
 export default function Header({
   projectName, onProjectNameChange, onExport, view, onViewChange,
-  onShowTemplates, onShowDocs, user, onSignIn, onSignOut, onSave, onOpenProjects, saving,
+  onShowTemplates, onShowDocs, user, onSignIn, onSignOut, onSave, onOpenProjects, saving, hasUnsavedChanges,
 }) {
   return (
     <header className="h-14 flex items-center justify-between px-4 border-b border-[var(--color-border)] bg-[var(--color-surface-light)] shrink-0">
@@ -20,11 +20,20 @@ export default function Header({
           spellCheck={false}
         />
 
+        {/* Unsaved changes indicator */}
+        {hasUnsavedChanges && (
+          <span className="text-[11px] italic text-amber-400">*Unsaved Changes</span>
+        )}
+
         {/* Save / Open — always visible */}
         <button
           onClick={onSave}
           disabled={saving}
-          className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors disabled:opacity-50"
+          className={`flex items-center gap-1 px-2 py-1 text-xs rounded border transition-colors disabled:opacity-50 ${
+            hasUnsavedChanges
+              ? 'border-amber-500/50 text-amber-400 hover:bg-amber-500/10'
+              : 'border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)]'
+          }`}
           title="Save project"
         >
           <Save className="w-3.5 h-3.5" />
