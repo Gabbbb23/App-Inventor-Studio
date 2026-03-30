@@ -54,6 +54,7 @@ function AppInner() {
       if (u && localStorage.getItem(`welcome_seen_${u.id}`)) {
         setShowTemplates(false);
       }
+    }).catch(() => {}).finally(() => {
       setAuthReady(true);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
