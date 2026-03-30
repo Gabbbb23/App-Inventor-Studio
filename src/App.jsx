@@ -60,76 +60,6 @@ function AppInner() {
   const currentSnapshot = JSON.stringify(appState.getProjectData());
   const hasUnsavedChanges = user && lastSavedSnapshot !== null && currentSnapshot !== lastSavedSnapshot;
 
-  // ─── Keyboard shortcuts ──────────────────────────────────────────────
-
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      // Don't capture shortcuts when typing in inputs, textareas, or contenteditable
-      const tag = e.target.tagName;
-      const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
-
-      // Ctrl+S — Save (always capture to prevent browser save dialog)
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        handleSave();
-        return;
-      }
-
-      // Ctrl+E — Export
-      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-        e.preventDefault();
-        handleExport();
-        return;
-      }
-
-      // Escape — Deselect / close panels
-      if (e.key === 'Escape') {
-        if (showDocs) { setShowDocs(false); return; }
-        if (showAuth) { setShowAuth(false); return; }
-        if (showProjects) { setShowProjects(false); return; }
-        if (exportWarnings) { setExportWarnings(null); return; }
-        appState.selectComponent(null);
-        return;
-      }
-
-      // Skip remaining shortcuts if typing in an input
-      if (isEditing) return;
-
-      const selectedId = appState.state.selectedComponentId;
-
-      // Delete / Backspace — Remove selected component
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
-        e.preventDefault();
-        appState.removeComponent(selectedId);
-        return;
-      }
-
-      // Ctrl+D — Duplicate selected component
-      if ((e.ctrlKey || e.metaKey) && e.key === 'd' && selectedId) {
-        e.preventDefault();
-        appState.duplicateComponent(selectedId);
-        return;
-      }
-
-      // Ctrl+ArrowUp — Move component up
-      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowUp' && selectedId) {
-        e.preventDefault();
-        appState.moveComponent(selectedId, 'up');
-        return;
-      }
-
-      // Ctrl+ArrowDown — Move component down
-      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowDown' && selectedId) {
-        e.preventDefault();
-        appState.moveComponent(selectedId, 'down');
-        return;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [appState, handleSave, handleExport, showDocs, showAuth, showProjects, exportWarnings]);
-
   // Live-parse the screen{} layout block from code to show in preview
   const codePreviewScreen = useMemo(() => {
     const code = appState.activeScreen.code || '';
@@ -249,6 +179,67 @@ function AppInner() {
     setLastSavedSnapshot(null);
     toast('New project created', 'info');
   };
+
+  // ─── Keyboard shortcuts ──────────────────────────────────────────────
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const tag = e.target.tagName;
+      const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        handleExport();
+        return;
+      }
+
+      if (e.key === 'Escape') {
+        if (showDocs) { setShowDocs(false); return; }
+        if (showAuth) { setShowAuth(false); return; }
+        if (showProjects) { setShowProjects(false); return; }
+        if (exportWarnings) { setExportWarnings(null); return; }
+        appState.selectComponent(null);
+        return;
+      }
+
+      if (isEditing) return;
+
+      const selectedId = appState.state.selectedComponentId;
+
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
+        e.preventDefault();
+        appState.removeComponent(selectedId);
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd' && selectedId) {
+        e.preventDefault();
+        appState.duplicateComponent(selectedId);
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowUp' && selectedId) {
+        e.preventDefault();
+        appState.moveComponent(selectedId, 'up');
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowDown' && selectedId) {
+        e.preventDefault();
+        appState.moveComponent(selectedId, 'down');
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [appState, handleSave, handleExport, showDocs, showAuth, showProjects, exportWarnings]);
 
   // ─── Header props shared between both render paths ──────────────────
 
