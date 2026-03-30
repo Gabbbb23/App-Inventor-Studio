@@ -39,6 +39,7 @@ function AppInner() {
   const [exportWarnings, setExportWarnings] = useState(null);
   const [showDocs, setShowDocs] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
   const [showProjects, setShowProjects] = useState(false);
   const [user, setUser] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -103,7 +104,7 @@ function AppInner() {
     }
   };
 
-  const handleExport = useCallback(() => {
+  const proceedExport = useCallback(() => {
     const warnings = validateForExport(appState.activeScreen.components);
     if (warnings.length > 0) {
       setExportWarnings(warnings);
@@ -111,6 +112,14 @@ function AppInner() {
       doExport();
     }
   }, [appState.activeScreen.components]);
+
+  const handleExport = useCallback(() => {
+    if (!user) {
+      setShowSignInPrompt(true);
+    } else {
+      proceedExport();
+    }
+  }, [user, proceedExport]);
 
   const handleExportFix = (componentName, property, value) => {
     const comp = findComponent(appState.activeScreen.components, componentName);
@@ -286,6 +295,40 @@ function AppInner() {
           onLoad={handleLoadProject}
           onNewProject={handleNewProject}
         />
+      )}
+      {showSignInPrompt && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--color-surface-light)] rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-[var(--color-border)]">
+              <h2 className="text-base font-semibold text-[var(--color-text)]">Save your work?</h2>
+            </div>
+            <div className="px-5 py-4">
+              <p className="text-sm text-[var(--color-text-dim)]">
+                Sign in to save your project to the cloud so you don't lose it. You can also export without signing in.
+              </p>
+            </div>
+            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+              <button
+                onClick={() => setShowSignInPrompt(false)}
+                className="px-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => { setShowSignInPrompt(false); proceedExport(); }}
+                className="px-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] transition-colors"
+              >
+                Export without saving
+              </button>
+              <button
+                onClick={() => { setShowSignInPrompt(false); setShowAuth(true); }}
+                className="px-4 py-1.5 text-sm rounded-lg bg-[var(--color-primary)] text-white font-medium hover:opacity-90 transition-opacity"
+              >
+                Sign In
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {exportWarnings && (
         <ExportWarnings
