@@ -17,6 +17,7 @@ import ExportWarnings, { validateForExport } from './components/ExportWarnings';
 import DocsPanel from './components/DocsPanel';
 import AuthModal from './components/AuthModal';
 import ProjectsModal from './components/ProjectsModal';
+import { ToastProvider, useToast } from './components/Toast';
 import LayoutBuilder from './components/LayoutBuilder';
 
 function findComponent(components, name) {
@@ -30,8 +31,9 @@ function findComponent(components, name) {
   return null;
 }
 
-function App() {
+function AppInner() {
   const appState = useAppState();
+  const toast = useToast();
   const [showTemplates, setShowTemplates] = useState(false);
   const [exportWarnings, setExportWarnings] = useState(null);
   const [showDocs, setShowDocs] = useState(false);
@@ -47,11 +49,9 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
@@ -73,9 +73,10 @@ function App() {
     try {
       const project = appState.getProjectData();
       await generateAia(project);
+      toast('Project exported as .aia', 'success');
     } catch (err) {
       console.error('Export failed:', err);
-      alert('Export failed: ' + err.message);
+      toast('Export failed: ' + err.message, 'error');
     }
   };
 
@@ -101,17 +102,24 @@ function App() {
     appState.loadTemplate(template);
     setCurrentProjectId(null);
     setShowTemplates(false);
+    toast(`Loaded template: ${template.name}`, 'success');
   };
 
   // ─── Auth ────────────────────────────────────────────────────────────
+
+  const handleAuth = (u) => {
+    setUser(u);
+    toast('Signed in successfully', 'success');
+  };
 
   const handleSignOut = async () => {
     await authSignOut();
     setUser(null);
     setCurrentProjectId(null);
+    toast('Signed out', 'info');
   };
 
-  // ─── Save / Load ────────────────────────────────────────────────────
+  // ─── Save / Load / New ──────────────────────────────────────────────
 
   const handleSave = useCallback(async () => {
     if (!user) { setShowAuth(true); return; }
@@ -120,20 +128,36 @@ function App() {
       const projectData = appState.getProjectData();
       const saved = await saveProject(projectData.name, projectData);
       setCurrentProjectId(saved.id);
+      toast(`Project "${projectData.name}" saved`, 'success');
     } catch (err) {
-      alert('Save failed: ' + err.message);
+      toast('Save failed: ' + err.message, 'error');
     } finally {
       setSaving(false);
     }
-  }, [user, appState]);
+  }, [user, appState, toast]);
 
   const handleLoadProject = (projectData, projectId, projectName) => {
-    // projectData is the full project object saved to Supabase
     appState.loadTemplate({
       name: projectData.name || projectName,
       screens: projectData.screens,
     });
     setCurrentProjectId(projectId);
+    toast(`Opened "${projectData.name || projectName}"`, 'success');
+  };
+
+  const handleNewProject = () => {
+    appState.loadTemplate({
+      name: 'MyApp',
+      screens: [{
+        name: 'Screen1',
+        title: 'Screen1',
+        properties: {},
+        components: [],
+        code: '// Write your code here\n',
+      }],
+    });
+    setCurrentProjectId(null);
+    toast('New project created', 'info');
   };
 
   // ─── Header props shared between both render paths ──────────────────
@@ -149,17 +173,26 @@ function App() {
     onSignIn: () => setShowAuth(true),
     onSignOut: handleSignOut,
     onSave: handleSave,
-    onOpenProjects: () => showProjects ? setShowProjects(false) : (user ? setShowProjects(true) : setShowAuth(true)),
+    onOpenProjects: () => {
+      if (!user) { setShowAuth(true); return; }
+      setShowProjects(true);
+    },
     saving,
   };
 
-  // ─── Overlays (shared between both render paths) ────────────────────
+  // ─── Overlays ───────────────────────────────────────────────────────
 
   const overlays = (
     <>
       {showDocs && <DocsPanel onClose={() => setShowDocs(false)} />}
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} onAuth={(u) => setUser(u)} />}
-      {showProjects && <ProjectsModal onClose={() => setShowProjects(false)} onLoad={handleLoadProject} />}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} onAuth={handleAuth} />}
+      {showProjects && (
+        <ProjectsModal
+          onClose={() => setShowProjects(false)}
+          onLoad={handleLoadProject}
+          onNewProject={handleNewProject}
+        />
+      )}
       {exportWarnings && (
         <ExportWarnings
           warnings={exportWarnings}
@@ -190,7 +223,6 @@ function App() {
       <div className="flex flex-col h-screen bg-[var(--color-surface)]">
         <Header {...headerProps} onShowTemplates={() => setShowTemplates(true)} />
         <div className="flex flex-1 overflow-hidden">
-          {/* Left Panel - Palette & Tree (design view only) */}
           {view === 'design' && (
             <div className="w-64 flex flex-col border-r border-[var(--color-border)] bg-[var(--color-surface-light)]">
               <ComponentPalette onAdd={appState.addComponent} />
@@ -204,59 +236,35 @@ function App() {
             </div>
           )}
 
-          {/* Center Panel */}
           <div className="flex-1 flex flex-col overflow-hidden">
             {view === 'design' && (
               <div className="flex-1 overflow-auto flex items-start justify-center p-4 bg-[var(--color-surface)]">
-                <PhonePreview
-                  screen={previewScreen}
-                  selectedId={appState.state.selectedComponentId}
-                  onSelect={appState.selectComponent}
-                />
+                <PhonePreview screen={previewScreen} selectedId={appState.state.selectedComponentId} onSelect={appState.selectComponent} />
               </div>
             )}
             {view === 'code' && (
               <div className="flex-1 flex overflow-hidden">
                 <div className="flex-1 overflow-hidden">
-                  <CodeEditor
-                    code={appState.activeScreen.code}
-                    onChange={appState.updateCode}
-                    components={appState.activeScreen.components}
-                  />
+                  <CodeEditor code={appState.activeScreen.code} onChange={appState.updateCode} components={appState.activeScreen.components} />
                 </div>
                 <div className="w-[390px] shrink-0 border-l border-[var(--color-border)] overflow-auto flex flex-col items-center p-3 bg-[var(--color-surface)]">
                   <div className="text-xs text-[var(--color-text-dim)] mb-2 font-medium">LIVE PREVIEW</div>
-                  <PhonePreview
-                    screen={previewScreen}
-                    selectedId={appState.state.selectedComponentId}
-                    onSelect={appState.selectComponent}
-                  />
+                  <PhonePreview screen={previewScreen} selectedId={appState.state.selectedComponentId} onSelect={appState.selectComponent} />
                 </div>
               </div>
             )}
             {view === 'layout' && (
               <div className="flex-1 flex overflow-hidden">
                 <div className="w-80 border-r border-[var(--color-border)] bg-[var(--color-surface-light)] overflow-hidden">
-                  <LayoutBuilder
-                    onApplyPreset={appState.applyPreset}
-                    components={appState.activeScreen.components}
-                    onAddComponent={appState.addComponent}
-                    onWrapInLayout={appState.wrapInLayout}
-                    selectedId={appState.state.selectedComponentId}
-                  />
+                  <LayoutBuilder onApplyPreset={appState.applyPreset} components={appState.activeScreen.components} onAddComponent={appState.addComponent} onWrapInLayout={appState.wrapInLayout} selectedId={appState.state.selectedComponentId} />
                 </div>
                 <div className="flex-1 overflow-auto flex items-start justify-center p-4 bg-[var(--color-surface)]">
-                  <PhonePreview
-                    screen={previewScreen}
-                    selectedId={appState.state.selectedComponentId}
-                    onSelect={appState.selectComponent}
-                  />
+                  <PhonePreview screen={previewScreen} selectedId={appState.state.selectedComponentId} onSelect={appState.selectComponent} />
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right Panel - Properties */}
           <div className={`${view === 'layout' ? 'w-64' : 'w-72'} border-l border-[var(--color-border)] bg-[var(--color-surface-light)] overflow-y-auto`}>
             <PropertyEditor
               component={appState.getSelectedComponent()}
@@ -273,4 +281,10 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <ToastProvider>
+      <AppInner />
+    </ToastProvider>
+  );
+}

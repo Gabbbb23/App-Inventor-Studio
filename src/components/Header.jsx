@@ -20,28 +20,24 @@ export default function Header({
           spellCheck={false}
         />
 
-        {/* Save / Open (only when signed in) */}
-        {user && (
-          <>
-            <button
-              onClick={onSave}
-              disabled={saving}
-              className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors disabled:opacity-50"
-              title="Save project"
-            >
-              <Save className="w-3.5 h-3.5" />
-              {saving ? 'Saving...' : 'Save'}
-            </button>
-            <button
-              onClick={onOpenProjects}
-              className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors"
-              title="Open saved project"
-            >
-              <FolderInput className="w-3.5 h-3.5" />
-              Open
-            </button>
-          </>
-        )}
+        {/* Save / Open — always visible */}
+        <button
+          onClick={onSave}
+          disabled={saving}
+          className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors disabled:opacity-50"
+          title="Save project"
+        >
+          <Save className="w-3.5 h-3.5" />
+          {saving ? 'Saving...' : 'Save'}
+        </button>
+        <button
+          onClick={onOpenProjects}
+          className="flex items-center gap-1 px-2 py-1 text-xs rounded border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface)] transition-colors"
+          title="Open saved project"
+        >
+          <FolderInput className="w-3.5 h-3.5" />
+          Open
+        </button>
       </div>
 
       <div className="flex items-center gap-2">

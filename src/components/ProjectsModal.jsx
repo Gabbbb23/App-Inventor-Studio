@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { X, FolderOpen, Trash2, Clock, Save } from 'lucide-react';
+import { X, FolderOpen, Trash2, Clock, Save, Plus } from 'lucide-react';
 import { listProjects, loadProject, deleteProject } from '../lib/supabase';
 
-export default function ProjectsModal({ onClose, onLoad }) {
+export default function ProjectsModal({ onClose, onLoad, onNewProject }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -64,6 +64,17 @@ export default function ProjectsModal({ onClose, onLoad }) {
           </div>
           <button onClick={onClose} className="p-1 hover:bg-[var(--color-surface)] rounded transition-colors">
             <X className="w-4 h-4 text-[var(--color-text-dim)]" />
+          </button>
+        </div>
+
+        {/* New Project */}
+        <div className="px-5 py-3 border-b border-[var(--color-border)]">
+          <button
+            onClick={() => { onNewProject(); onClose(); }}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border-2 border-dashed border-[var(--color-border)] text-sm text-[var(--color-text-dim)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary-light)] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            New Project
           </button>
         </div>
 
