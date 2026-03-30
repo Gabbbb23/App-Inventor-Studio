@@ -44,6 +44,8 @@ project.aia/
 
 `useAppState.js` is a custom React hook managing the entire app state: screens (each with a component tree + code), selection, and project metadata. Components are stored as nested trees with `children` arrays for layout containers. Exports methods for add/remove/update/rename/duplicate/move components, load templates, wrap in layouts, and get project data for export.
 
+`treeUtils.js` contains all tree traversal and manipulation functions (`findInTree`, `findByName`, `removeFromTree`, `updateInTree`, `moveInTree`, `addToParent`, etc.) — extracted from `useAppState.js` for reuse across the codebase.
+
 ### Authentication & Project Persistence
 
 `supabase.js` handles auth (sign up, sign in, sign out) and project CRUD (save, load, list, delete) against a Supabase backend. Projects are stored in a `projects` table keyed on `(user_id, name)` with upsert semantics. The Supabase URL and anon key are hardcoded (public anon key, not a secret).
@@ -53,6 +55,7 @@ project.aia/
 `App.jsx` switches between three views (design/code/layout) and manages overlays (AuthModal, ProjectsModal, DocsPanel, ExportWarnings, TemplateGallery).
 
 Key UI components:
+- `Modal.jsx` — reusable modal wrapper (backdrop, header, close button) used by AuthModal, ProjectsModal, ExportWarnings, and sign-in prompt
 - `PhonePreview.jsx` — renders the component tree as a 360px mock device in real-time, with a non-visible components tray below
 - `CodeEditor.jsx` — CodeMirror editor with syntax highlighting and parse status indicator
 - `ComponentPalette.jsx` — searchable, categorized component picker
@@ -66,6 +69,7 @@ Key UI components:
 
 ### Keyboard Shortcuts
 
+Implemented via a single `keydown` listener using `useRef` to avoid re-attachment on state changes:
 - `Ctrl/Cmd+S` — Save project
 - `Ctrl/Cmd+E` — Export .aia
 - `Ctrl/Cmd+D` — Duplicate selected component
@@ -73,9 +77,15 @@ Key UI components:
 - `Delete/Backspace` — Remove selected component
 - `Escape` — Close modals / deselect
 
+Shortcuts are disabled when focus is in an input, textarea, or contenteditable element (except Ctrl+S and Ctrl+E which always capture to prevent browser defaults).
+
 ### Unsaved Changes & Auto-Save
 
-The app tracks unsaved changes via JSON snapshot comparison and shows an amber indicator in the header. On export, it auto-saves the project if the user is signed in (silently fails if save fails, does not block export).
+The app tracks unsaved changes via JSON snapshot comparison and shows an amber indicator in the header. On export, it auto-saves the project if the user is signed in (silently fails if save fails, does not block export). The snapshot must match `getProjectData()` output exactly (including the `appName` field added to each screen) — mismatches cause false dirty indicators.
+
+### Welcome Screen
+
+The template gallery shows on every page load for anonymous users. For signed-in users, it shows once (tracked in `localStorage` per user ID). Dismissed by picking a template or clicking "Skip".
 
 ## iOS AI Companion Compatibility
 
@@ -92,7 +102,7 @@ The code editor supports: `var`, `when Component.Event {}`, `set/get Component.P
 
 ## Layout Markup Syntax
 
-The layout editor uses `screen {}` blocks with type aliases (`V`, `H`, `VScroll`, `HScroll`, `Table`, `Text`, `Password`, `List`, `Picker`, `DB`, `WebDB`, `Firebase`), shorthand flags (`fill`, `fillW`, `fillH`, `auto`, `autoH`, `bold`, `italic`, `center`, `centerV`, `left`, `right`, `checked`, `multiline`, `numbersOnly`), shorthand keys (`w=`, `h=`, `bg=`, `color=`, `fontSize=`, `hint=`, `enabled=`, `visible=`), and custom naming via `as` (e.g., `Button("Go" as GoButton)`).
+`TYPE_ALIASES` is exported from `layoutParser.js` so `docsData.js` can import it (keep these in sync). The layout editor uses `screen {}` blocks with type aliases (`V`, `H`, `VScroll`, `HScroll`, `Table`, `Text`, `Password`, `List`, `Picker`, `DB`, `WebDB`, `Firebase`), shorthand flags (`fill`, `fillW`, `fillH`, `auto`, `autoH`, `bold`, `italic`, `center`, `centerV`, `left`, `right`, `checked`, `multiline`, `numbersOnly`), shorthand keys (`w=`, `h=`, `bg=`, `color=`, `fontSize=`, `hint=`, `enabled=`, `visible=`), and custom naming via `as` (e.g., `Button("Go" as GoButton)`).
 
 ## Component Definitions
 
