@@ -176,13 +176,20 @@ function AppInner() {
   }, [user, appState, toast]);
 
   const handleLoadProject = (projectData, projectId, projectName) => {
-    appState.loadTemplate({
-      name: projectData.name || projectName,
-      screens: projectData.screens,
-    });
+    const name = projectData.name || projectName;
+    appState.loadTemplate({ name, screens: projectData.screens });
     setCurrentProjectId(projectId);
-    setLastSavedSnapshot(JSON.stringify(projectData));
-    toast(`Opened "${projectData.name || projectName}"`, 'success');
+    // Snapshot must match what getProjectData() will produce after state updates.
+    // getProjectData() adds appName to each screen, so reconstruct it the same way.
+    const snapshot = {
+      name,
+      screens: projectData.screens.map(s => ({
+        name: s.name, title: s.title, appName: name,
+        properties: s.properties, components: s.components, code: s.code,
+      })),
+    };
+    setLastSavedSnapshot(JSON.stringify(snapshot));
+    toast(`Opened "${name}"`, 'success');
   };
 
   const handleNewProject = () => {
