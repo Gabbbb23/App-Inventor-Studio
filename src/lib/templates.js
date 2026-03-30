@@ -762,11 +762,6 @@ when ClearButton.Click {
         code: `var role = "customer"
 var rideStatus = "idle"
 
-when Screen1.Initialize {
-  set Clock1.TimerInterval = 5000
-  set Clock1.TimerEnabled = true
-}
-
 // ---- Role Switching ----
 
 when CustomerBtn.Click {

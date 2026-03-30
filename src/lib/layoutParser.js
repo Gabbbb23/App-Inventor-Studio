@@ -9,7 +9,7 @@ import { COMPONENTS, generateUuid } from './componentDefs';
 // Type aliases: short names -> canonical App Inventor component types
 // ---------------------------------------------------------------------------
 
-const TYPE_ALIASES = {
+export const TYPE_ALIASES = {
   'V': 'VerticalArrangement',
   'Vertical': 'VerticalArrangement',
   'H': 'HorizontalArrangement',
