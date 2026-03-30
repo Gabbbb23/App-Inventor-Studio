@@ -34,7 +34,8 @@ function findComponent(components, name) {
 function AppInner() {
   const appState = useAppState();
   const toast = useToast();
-  const [showTemplates, setShowTemplates] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(true);
+  const [authReady, setAuthReady] = useState(false);
   const [exportWarnings, setExportWarnings] = useState(null);
   const [showDocs, setShowDocs] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
@@ -45,10 +46,15 @@ function AppInner() {
   const [lastSavedSnapshot, setLastSavedSnapshot] = useState(null);
   const [view, setView] = useState('design');
 
-  // Listen for auth state changes
+  // Listen for auth state changes and decide whether to show welcome screen
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u && localStorage.getItem(`welcome_seen_${u.id}`)) {
+        setShowTemplates(false);
+      }
+      setAuthReady(true);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
@@ -114,11 +120,16 @@ function AppInner() {
 
   // ─── Templates ───────────────────────────────────────────────────────
 
+  const dismissWelcome = () => {
+    setShowTemplates(false);
+    if (user) localStorage.setItem(`welcome_seen_${user.id}`, '1');
+  };
+
   const handleLoadTemplate = (template) => {
     appState.loadTemplate(template);
     setCurrentProjectId(null);
     setLastSavedSnapshot(null);
-    setShowTemplates(false);
+    dismissWelcome();
     toast(`Loaded template: ${template.name}`, 'success');
   };
 
@@ -286,6 +297,11 @@ function AppInner() {
     </>
   );
 
+  // Wait for auth check before rendering to avoid flash
+  if (!authReady) {
+    return <div className="h-screen bg-[var(--color-surface)]" />;
+  }
+
   if (showTemplates) {
     return (
       <div className="flex flex-col h-screen bg-[var(--color-surface)]">
@@ -293,7 +309,7 @@ function AppInner() {
         <TemplateGallery
           templates={TEMPLATES}
           onSelect={handleLoadTemplate}
-          onSkip={() => setShowTemplates(false)}
+          onSkip={dismissWelcome}
         />
         {overlays}
       </div>
