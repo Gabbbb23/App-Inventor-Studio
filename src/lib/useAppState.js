@@ -202,6 +202,48 @@ export function useAppState() {
     });
   }, []);
 
+  // Duplicate a component (deep clone with new UUIDs and names)
+  const duplicateComponent = useCallback((uuid) => {
+    setState(prev => {
+      const screens = [...prev.screens];
+      const screen = { ...screens[prev.activeScreenIndex] };
+      const original = findInTree(screen.components, uuid);
+      if (!original) return prev;
+
+      function cloneComp(comp) {
+        const newName = getUniqueNameFromComponents(comp.$Type, screen.components);
+        const cloned = {
+          ...comp,
+          $Name: newName,
+          Uuid: generateUuid(),
+          properties: { ...comp.properties },
+          children: comp.children ? comp.children.map(cloneComp) : [],
+        };
+        return cloned;
+      }
+
+      const duplicate = cloneComp(original);
+
+      // Insert the duplicate next to the original in its parent
+      function insertAfter(components, targetUuid, newComp) {
+        const idx = components.findIndex(c => c.Uuid === targetUuid);
+        if (idx !== -1) {
+          const arr = [...components];
+          arr.splice(idx + 1, 0, newComp);
+          return arr;
+        }
+        return components.map(c => ({
+          ...c,
+          children: c.children ? insertAfter(c.children, targetUuid, newComp) : [],
+        }));
+      }
+
+      screen.components = insertAfter(screen.components, uuid, duplicate);
+      screens[prev.activeScreenIndex] = screen;
+      return { ...prev, screens, selectedComponentId: duplicate.Uuid };
+    });
+  }, []);
+
   // Get project data for export
   const getProjectData = useCallback(() => {
     return {
@@ -234,6 +276,7 @@ export function useAppState() {
     getProjectData,
     applyPreset,
     wrapInLayout,
+    duplicateComponent,
   };
 }
 
