@@ -1,7 +1,8 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useAppState } from './lib/useAppState';
+import { findByName } from './lib/treeUtils';
 import { generateAia } from './lib/aiaGenerator';
 import { parseLayout } from './lib/layoutParser';
 import { TEMPLATES } from './lib/templates';
@@ -17,19 +18,9 @@ import ExportWarnings, { validateForExport } from './components/ExportWarnings';
 import DocsPanel from './components/DocsPanel';
 import AuthModal from './components/AuthModal';
 import ProjectsModal from './components/ProjectsModal';
+import Modal from './components/Modal';
 import { ToastProvider, useToast } from './components/Toast';
 import LayoutBuilder from './components/LayoutBuilder';
-
-function findComponent(components, name) {
-  for (const c of components) {
-    if (c.$Name === name) return c;
-    if (c.children) {
-      const found = findComponent(c.children, name);
-      if (found) return found;
-    }
-  }
-  return null;
-}
 
 function AppInner() {
   const appState = useAppState();
@@ -122,7 +113,7 @@ function AppInner() {
   }, [user, proceedExport]);
 
   const handleExportFix = (componentName, property, value) => {
-    const comp = findComponent(appState.activeScreen.components, componentName);
+    const comp = findByName(appState.activeScreen.components, componentName);
     if (comp) {
       appState.updateComponentProperty(comp.Uuid, property, value);
     }
@@ -208,66 +199,42 @@ function AppInner() {
     toast('New project created', 'info');
   };
 
-  // ─── Keyboard shortcuts ──────────────────────────────────────────────
+  // ─── Keyboard shortcuts (ref-based to avoid re-attaching listener) ──
+
+  const shortcutRefs = useRef({});
+  shortcutRefs.current = { handleSave, handleExport, appState, showDocs, showAuth, showProjects, exportWarnings };
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      const r = shortcutRefs.current;
       const tag = e.target.tagName;
       const isEditing = tag === 'INPUT' || tag === 'TEXTAREA' || e.target.isContentEditable;
 
-      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-        e.preventDefault();
-        handleSave();
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
-        e.preventDefault();
-        handleExport();
-        return;
-      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); r.handleSave(); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') { e.preventDefault(); r.handleExport(); return; }
 
       if (e.key === 'Escape') {
-        if (showDocs) { setShowDocs(false); return; }
-        if (showAuth) { setShowAuth(false); return; }
-        if (showProjects) { setShowProjects(false); return; }
-        if (exportWarnings) { setExportWarnings(null); return; }
-        appState.selectComponent(null);
+        if (r.showDocs) { setShowDocs(false); return; }
+        if (r.showAuth) { setShowAuth(false); return; }
+        if (r.showProjects) { setShowProjects(false); return; }
+        if (r.exportWarnings) { setExportWarnings(null); return; }
+        r.appState.selectComponent(null);
         return;
       }
 
       if (isEditing) return;
+      const selectedId = r.appState.state.selectedComponentId;
+      if (!selectedId) return;
 
-      const selectedId = appState.state.selectedComponentId;
-
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
-        e.preventDefault();
-        appState.removeComponent(selectedId);
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key === 'd' && selectedId) {
-        e.preventDefault();
-        appState.duplicateComponent(selectedId);
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowUp' && selectedId) {
-        e.preventDefault();
-        appState.moveComponent(selectedId, 'up');
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowDown' && selectedId) {
-        e.preventDefault();
-        appState.moveComponent(selectedId, 'down');
-        return;
-      }
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); r.appState.removeComponent(selectedId); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') { e.preventDefault(); r.appState.duplicateComponent(selectedId); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowUp') { e.preventDefault(); r.appState.moveComponent(selectedId, 'up'); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'ArrowDown') { e.preventDefault(); r.appState.moveComponent(selectedId, 'down'); return; }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [appState, handleSave, handleExport, showDocs, showAuth, showProjects, exportWarnings]);
+  }, []);
 
   // ─── Header props shared between both render paths ──────────────────
 
@@ -304,38 +271,24 @@ function AppInner() {
         />
       )}
       {showSignInPrompt && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--color-surface-light)] rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-[var(--color-border)]">
-              <h2 className="text-base font-semibold text-[var(--color-text)]">Save your work?</h2>
-            </div>
-            <div className="px-5 py-4">
-              <p className="text-sm text-[var(--color-text-dim)]">
-                Sign in to save your project to the cloud so you don't lose it. You can also export without signing in.
-              </p>
-            </div>
-            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
-              <button
-                onClick={() => setShowSignInPrompt(false)}
-                className="px-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => { setShowSignInPrompt(false); proceedExport(); }}
-                className="px-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] transition-colors"
-              >
-                Export without saving
-              </button>
-              <button
-                onClick={() => { setShowSignInPrompt(false); setShowAuth(true); }}
-                className="px-4 py-1.5 text-sm rounded-lg bg-[var(--color-primary)] text-white font-medium hover:opacity-90 transition-opacity"
-              >
-                Sign In
-              </button>
-            </div>
+        <Modal title="Save your work?" onClose={() => setShowSignInPrompt(false)}>
+          <div className="px-5 py-4">
+            <p className="text-sm text-[var(--color-text-dim)]">
+              Sign in to save your project to the cloud so you don't lose it. You can also export without signing in.
+            </p>
           </div>
-        </div>
+          <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-[var(--color-border)] bg-[var(--color-surface)]">
+            <button onClick={() => setShowSignInPrompt(false)} className="px-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] transition-colors">
+              Cancel
+            </button>
+            <button onClick={() => { setShowSignInPrompt(false); proceedExport(); }} className="px-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] text-[var(--color-text-dim)] hover:text-[var(--color-text)] transition-colors">
+              Export without saving
+            </button>
+            <button onClick={() => { setShowSignInPrompt(false); setShowAuth(true); }} className="px-4 py-1.5 text-sm rounded-lg bg-[var(--color-primary)] text-white font-medium hover:opacity-90 transition-opacity">
+              Sign In
+            </button>
+          </div>
+        </Modal>
       )}
       {exportWarnings && (
         <ExportWarnings
