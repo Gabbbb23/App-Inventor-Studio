@@ -56,8 +56,13 @@ function generateProjectProperties(project, packagePath) {
     'showlistsasjson=True',
     'actionbar=True',
     'theme=AppTheme.Light.DarkActionBar',
+    'color=&HFF4CAF50',
+    'primary=&HFF4CAF50',
+    'primaryDark=&HFF388E3C',
+    'accent=&HFFFF4081',
     'useslocation=False',
     'defaultfilescope=App',
+    'TutorialURL=',
   ];
   return lines.join('\n');
 }

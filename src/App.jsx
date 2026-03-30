@@ -16,7 +16,7 @@ import LayoutBuilder from './components/LayoutBuilder';
 
 function App() {
   const appState = useAppState();
-  const [showTemplates, setShowTemplates] = useState(true);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [view, setView] = useState('design'); // 'design', 'code', or 'layout'
 
   // Live-parse the screen{} layout block from code to show in preview

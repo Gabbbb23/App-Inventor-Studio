@@ -519,6 +519,43 @@ function ComponentRenderer({ comp, selectedId, onSelect, parentDir }) {
       );
     }
 
+    case 'Map': {
+      const w = parseDimension(props.Width) || '100%';
+      const h = parseDimension(props.Height) || '200px';
+      const markerChildren = (comp.children || []).filter(c => c.$Type === 'Marker');
+      return (
+        <div
+          className={`m-0.5 cursor-pointer ${selectionStyle} rounded overflow-hidden ${isFillWidth(props) ? 'w-full' : ''}`}
+          onClick={wrapperClick}
+          style={{ width: isFillWidth(props) ? '100%' : w, height: h, ...getDimensionStyle() }}
+        >
+          <div className="w-full h-full bg-[#ddd8c4] relative flex items-center justify-center">
+            <div className="absolute inset-0 opacity-15">
+              <div className="absolute top-1/4 left-0 right-0 h-px bg-gray-500" />
+              <div className="absolute top-1/2 left-0 right-0 h-px bg-gray-500" />
+              <div className="absolute top-3/4 left-0 right-0 h-px bg-gray-500" />
+              <div className="absolute left-1/4 top-0 bottom-0 w-px bg-gray-500" />
+              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-500" />
+              <div className="absolute left-3/4 top-0 bottom-0 w-px bg-gray-500" />
+            </div>
+            <div className="text-center z-10">
+              <div className="text-2xl">🗺️</div>
+              <div className="text-xs text-gray-600 font-medium">{comp.$Name}</div>
+              {markerChildren.length > 0 && (
+                <div className="text-[10px] text-gray-500 mt-0.5">
+                  {markerChildren.map(m => m.$Name).join(', ')}
+                </div>
+              )}
+            </div>
+            <div className="absolute right-1.5 top-1.5 flex flex-col gap-0.5">
+              <div className="w-5 h-5 bg-white shadow rounded text-center text-xs leading-5 text-gray-600">+</div>
+              <div className="w-5 h-5 bg-white shadow rounded text-center text-xs leading-5 text-gray-600">-</div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     case 'TableArrangement': {
       return (
         <div

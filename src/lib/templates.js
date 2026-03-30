@@ -510,6 +510,422 @@ when ClearButton.Click {
       }
     ]
   },
+  {
+    id: 'ridetracker',
+    name: 'Ride Tracker',
+    description: 'Location-based ride booking with Firebase real-time updates',
+    icon: '🚗',
+    screens: [
+      {
+        name: 'Screen1',
+        title: 'RideTracker',
+        properties: {},
+        components: [
+          {
+            $Name: 'VerticalArrangement1',
+            $Type: 'VerticalArrangement',
+            Uuid: '-600',
+            properties: { Width: '-2', Height: '-2' },
+            children: [
+              // Header bar
+              {
+                $Name: 'HeaderBar',
+                $Type: 'HorizontalArrangement',
+                Uuid: '-601',
+                properties: { Width: '-2', Height: '56', BackgroundColor: '&HFF3F51B5', AlignHorizontal: '3', AlignVertical: '2' },
+                children: [
+                  {
+                    $Name: 'TitleLabel',
+                    $Type: 'Label',
+                    Uuid: '-602',
+                    properties: { Text: 'RideTracker', FontSize: '20.0', FontBold: 'True', TextColor: '&HFFFFFFFF' },
+                    children: []
+                  }
+                ]
+              },
+              // Role selector bar
+              {
+                $Name: 'RoleBar',
+                $Type: 'HorizontalArrangement',
+                Uuid: '-603',
+                properties: { Width: '-2', Height: '48', BackgroundColor: '&HFF1E293B', AlignHorizontal: '3', AlignVertical: '2' },
+                children: [
+                  {
+                    $Name: 'CustomerBtn',
+                    $Type: 'Button',
+                    Uuid: '-604',
+                    properties: { Text: 'Customer', BackgroundColor: '&HFF22C55E', TextColor: '&HFFFFFFFF', Width: '140' },
+                    children: []
+                  },
+                  {
+                    $Name: 'DriverBtn',
+                    $Type: 'Button',
+                    Uuid: '-605',
+                    properties: { Text: 'Driver', BackgroundColor: '&HFF3B82F6', TextColor: '&HFFFFFFFF', Width: '140' },
+                    children: []
+                  }
+                ]
+              },
+              // ====== Customer Panel ======
+              {
+                $Name: 'CustomerPanel',
+                $Type: 'VerticalArrangement',
+                Uuid: '-606',
+                properties: { Width: '-2', Height: '-2', Visible: 'True' },
+                children: [
+                  {
+                    $Name: 'Map1',
+                    $Type: 'Map',
+                    Uuid: '-607',
+                    properties: { Width: '-2', Height: '220', ZoomLevel: '15', ShowZoom: 'True', ShowUser: 'True' },
+                    children: [
+                      {
+                        $Name: 'MyMarker',
+                        $Type: 'Marker',
+                        Uuid: '-608',
+                        properties: { Title: 'My Location', FillColor: '&HFF22C55E' },
+                        children: []
+                      },
+                      {
+                        $Name: 'DriverMarker',
+                        $Type: 'Marker',
+                        Uuid: '-609',
+                        properties: { Title: 'Driver', FillColor: '&HFF3B82F6' },
+                        children: []
+                      }
+                    ]
+                  },
+                  {
+                    $Name: 'LocationLabel',
+                    $Type: 'Label',
+                    Uuid: '-610',
+                    properties: { Text: 'Location: Waiting for GPS...', FontSize: '12.0', TextColor: '&HFF6B7280', Width: '-2' },
+                    children: []
+                  },
+                  {
+                    $Name: 'PickupInput',
+                    $Type: 'TextBox',
+                    Uuid: '-611',
+                    properties: { Hint: 'Enter pickup location', Width: '-2' },
+                    children: []
+                  },
+                  {
+                    $Name: 'DestInput',
+                    $Type: 'TextBox',
+                    Uuid: '-612',
+                    properties: { Hint: 'Enter destination', Width: '-2' },
+                    children: []
+                  },
+                  {
+                    $Name: 'BookBtn',
+                    $Type: 'Button',
+                    Uuid: '-613',
+                    properties: { Text: 'Book Ride', Width: '-2', BackgroundColor: '&HFF22C55E', TextColor: '&HFFFFFFFF', FontBold: 'True', FontSize: '16.0' },
+                    children: []
+                  },
+                  {
+                    $Name: 'StatusLabel',
+                    $Type: 'Label',
+                    Uuid: '-614',
+                    properties: { Text: 'Status: Idle', Width: '-2', TextAlignment: '1', FontSize: '14.0', TextColor: '&HFF3F51B5' },
+                    children: []
+                  },
+                  {
+                    $Name: 'CancelBtn',
+                    $Type: 'Button',
+                    Uuid: '-615',
+                    properties: { Text: 'Cancel Ride', Width: '-2', BackgroundColor: '&HFFEF4444', TextColor: '&HFFFFFFFF' },
+                    children: []
+                  }
+                ]
+              },
+              // ====== Driver Panel ======
+              {
+                $Name: 'DriverPanel',
+                $Type: 'VerticalArrangement',
+                Uuid: '-620',
+                properties: { Width: '-2', Height: '-2', Visible: 'False' },
+                children: [
+                  {
+                    $Name: 'Map2',
+                    $Type: 'Map',
+                    Uuid: '-621',
+                    properties: { Width: '-2', Height: '220', ZoomLevel: '15', ShowZoom: 'True', ShowUser: 'True' },
+                    children: [
+                      {
+                        $Name: 'DriverSelfMarker',
+                        $Type: 'Marker',
+                        Uuid: '-622',
+                        properties: { Title: 'My Location', FillColor: '&HFF3B82F6' },
+                        children: []
+                      },
+                      {
+                        $Name: 'CustomerMarker',
+                        $Type: 'Marker',
+                        Uuid: '-623',
+                        properties: { Title: 'Customer', FillColor: '&HFF22C55E' },
+                        children: []
+                      }
+                    ]
+                  },
+                  {
+                    $Name: 'DriverLocLabel',
+                    $Type: 'Label',
+                    Uuid: '-624',
+                    properties: { Text: 'Location: Waiting for GPS...', FontSize: '12.0', TextColor: '&HFF6B7280', Width: '-2' },
+                    children: []
+                  },
+                  {
+                    $Name: 'BookingLabel',
+                    $Type: 'Label',
+                    Uuid: '-625',
+                    properties: { Text: 'No active bookings', FontSize: '16.0', FontBold: 'True', Width: '-2', TextAlignment: '1' },
+                    children: []
+                  },
+                  {
+                    $Name: 'RideInfoLabel',
+                    $Type: 'Label',
+                    Uuid: '-626',
+                    properties: { Text: '', FontSize: '13.0', TextColor: '&HFF6B7280', Width: '-2' },
+                    children: []
+                  },
+                  {
+                    $Name: 'BtnRow',
+                    $Type: 'HorizontalArrangement',
+                    Uuid: '-627',
+                    properties: { Width: '-2', AlignHorizontal: '3' },
+                    children: [
+                      {
+                        $Name: 'AcceptBtn',
+                        $Type: 'Button',
+                        Uuid: '-628',
+                        properties: { Text: 'Accept', BackgroundColor: '&HFF22C55E', TextColor: '&HFFFFFFFF', FontBold: 'True', Width: '140' },
+                        children: []
+                      },
+                      {
+                        $Name: 'RejectBtn',
+                        $Type: 'Button',
+                        Uuid: '-629',
+                        properties: { Text: 'Reject', BackgroundColor: '&HFFF97316', TextColor: '&HFFFFFFFF', Width: '140' },
+                        children: []
+                      }
+                    ]
+                  },
+                  {
+                    $Name: 'DriverStatusLabel',
+                    $Type: 'Label',
+                    Uuid: '-630',
+                    properties: { Text: 'Status: Available', Width: '-2', TextAlignment: '1', FontSize: '14.0', TextColor: '&HFF3B82F6' },
+                    children: []
+                  },
+                  {
+                    $Name: 'CompleteBtn',
+                    $Type: 'Button',
+                    Uuid: '-631',
+                    properties: { Text: 'Complete Ride', Width: '-2', BackgroundColor: '&HFF3B82F6', TextColor: '&HFFFFFFFF', FontBold: 'True', FontSize: '16.0' },
+                    children: []
+                  }
+                ]
+              }
+            ]
+          },
+          // Non-visible components
+          {
+            $Name: 'LocationSensor1',
+            $Type: 'LocationSensor',
+            Uuid: '-640',
+            properties: { TimeInterval: '5000', DistanceInterval: '5' },
+            children: []
+          },
+          {
+            $Name: 'FirebaseDB1',
+            $Type: 'FirebaseDB',
+            Uuid: '-641',
+            properties: { FirebaseURL: '', ProjectBucket: 'ridetracker' },
+            children: []
+          },
+          {
+            $Name: 'Clock1',
+            $Type: 'Clock',
+            Uuid: '-642',
+            properties: { TimerInterval: '5000', TimerEnabled: 'True' },
+            children: []
+          },
+          {
+            $Name: 'Notifier1',
+            $Type: 'Notifier',
+            Uuid: '-643',
+            properties: {},
+            children: []
+          }
+        ],
+        code: `var role = "customer"
+var rideStatus = "idle"
+
+when Screen1.Initialize {
+  set Clock1.TimerInterval = 5000
+  set Clock1.TimerEnabled = true
+}
+
+// ---- Role Switching ----
+
+when CustomerBtn.Click {
+  role = "customer"
+  set CustomerPanel.Visible = true
+  set DriverPanel.Visible = false
+}
+
+when DriverBtn.Click {
+  role = "driver"
+  set CustomerPanel.Visible = false
+  set DriverPanel.Visible = true
+  call FirebaseDB1.GetValue("ride_status", "idle")
+}
+
+// ---- GPS Location Updates ----
+
+when LocationSensor1.LocationChanged(latitude, longitude, altitude, speed) {
+  if role == "customer" {
+    set LocationLabel.Text = join("Lat: ", join(latitude, join("  Lng: ", longitude)))
+    call MyMarker.SetLocation(latitude, longitude)
+    call Map1.PanTo(latitude, longitude, 15)
+  } else {
+    set DriverLocLabel.Text = join("Lat: ", join(latitude, join("  Lng: ", longitude)))
+    call DriverSelfMarker.SetLocation(latitude, longitude)
+    call Map2.PanTo(latitude, longitude, 15)
+  }
+}
+
+// ---- Push Location to Firebase ----
+
+when Clock1.Timer {
+  if role == "customer" {
+    call FirebaseDB1.StoreValue("cust_lat", join("", get LocationSensor1.Latitude))
+    call FirebaseDB1.StoreValue("cust_lng", join("", get LocationSensor1.Longitude))
+  } else {
+    call FirebaseDB1.StoreValue("drv_lat", join("", get LocationSensor1.Latitude))
+    call FirebaseDB1.StoreValue("drv_lng", join("", get LocationSensor1.Longitude))
+  }
+}
+
+// ---- Customer: Book Ride ----
+
+when BookBtn.Click {
+  if get PickupInput.Text != "" {
+    if get DestInput.Text != "" {
+      call FirebaseDB1.StoreValue("ride_pickup", get PickupInput.Text)
+      call FirebaseDB1.StoreValue("ride_dest", get DestInput.Text)
+      call FirebaseDB1.StoreValue("ride_status", "waiting")
+      rideStatus = "waiting"
+      set StatusLabel.Text = "Waiting for driver..."
+      set BookBtn.Enabled = false
+      call Notifier1.ShowAlert("Ride booked!")
+    } else {
+      call Notifier1.ShowAlert("Enter a destination")
+    }
+  } else {
+    call Notifier1.ShowAlert("Enter pickup location")
+  }
+}
+
+// ---- Customer: Cancel Ride ----
+
+when CancelBtn.Click {
+  call FirebaseDB1.StoreValue("ride_status", "cancelled")
+  rideStatus = "idle"
+  set StatusLabel.Text = "Ride cancelled"
+  set BookBtn.Enabled = true
+}
+
+// ---- Driver: Accept Ride ----
+
+when AcceptBtn.Click {
+  call FirebaseDB1.StoreValue("ride_status", "accepted")
+  rideStatus = "accepted"
+  set DriverStatusLabel.Text = "En route to pickup"
+  call Notifier1.ShowAlert("Ride accepted!")
+}
+
+// ---- Driver: Reject Ride ----
+
+when RejectBtn.Click {
+  call FirebaseDB1.StoreValue("ride_status", "rejected")
+  set DriverStatusLabel.Text = "Available"
+  set BookingLabel.Text = "No bookings"
+  set RideInfoLabel.Text = ""
+}
+
+// ---- Driver: Complete Ride ----
+
+when CompleteBtn.Click {
+  call FirebaseDB1.StoreValue("ride_status", "completed")
+  rideStatus = "idle"
+  set DriverStatusLabel.Text = "Available"
+  set BookingLabel.Text = "Ride completed!"
+  call Notifier1.ShowAlert("Ride completed!")
+}
+
+// ---- Firebase Real-Time Updates ----
+
+when FirebaseDB1.DataChanged(tag, value) {
+  if role == "customer" {
+    if tag == "ride_status" {
+      if value == "accepted" {
+        set StatusLabel.Text = "Driver accepted!"
+        call Notifier1.ShowAlert("Driver is on the way!")
+      }
+      if value == "completed" {
+        set StatusLabel.Text = "Ride complete!"
+        set BookBtn.Enabled = true
+        rideStatus = "idle"
+      }
+      if value == "rejected" {
+        set StatusLabel.Text = "Declined. Try again."
+        set BookBtn.Enabled = true
+        rideStatus = "idle"
+      }
+    }
+    if tag == "drv_lat" {
+      set DriverMarker.Latitude = value
+    }
+    if tag == "drv_lng" {
+      set DriverMarker.Longitude = value
+    }
+  }
+  if role == "driver" {
+    if tag == "ride_status" {
+      if value == "waiting" {
+        set BookingLabel.Text = "New ride request!"
+        call FirebaseDB1.GetValue("ride_pickup", "")
+        call FirebaseDB1.GetValue("ride_dest", "")
+        call Notifier1.ShowAlert("New booking!")
+      }
+      if value == "cancelled" {
+        set BookingLabel.Text = "Cancelled by customer"
+        set RideInfoLabel.Text = ""
+        set DriverStatusLabel.Text = "Available"
+      }
+    }
+    if tag == "cust_lat" {
+      set CustomerMarker.Latitude = value
+    }
+    if tag == "cust_lng" {
+      set CustomerMarker.Longitude = value
+    }
+  }
+}
+
+when FirebaseDB1.GotValue(tag, value) {
+  if tag == "ride_pickup" {
+    set RideInfoLabel.Text = join("From: ", value)
+  }
+  if tag == "ride_dest" {
+    set RideInfoLabel.Text = join(get RideInfoLabel.Text, join("  To: ", value))
+  }
+}`,
+      }
+    ]
+  },
 ];
 
 export function getTemplate(id) {

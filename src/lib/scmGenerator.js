@@ -75,11 +75,13 @@ function buildComponent(comp, parentType = null) {
   // inside a VerticalArrangement does NOT render children on iOS at all.
   // Replace with regular VerticalArrangement which works identically but renders.
   // Same for HorizontalScrollArrangement inside HorizontalArrangement.
+  // Only convert when nested inside another arrangement — top-level scroll
+  // arrangements (direct children of Form) work fine on iOS.
   let actualType = comp.$Type;
-  if (actualType === 'VerticalScrollArrangement') {
+  if (actualType === 'VerticalScrollArrangement' && parentType && parentType !== 'Form') {
     actualType = 'VerticalArrangement';
   }
-  if (actualType === 'HorizontalScrollArrangement') {
+  if (actualType === 'HorizontalScrollArrangement' && parentType && parentType !== 'Form') {
     actualType = 'HorizontalArrangement';
   }
 
@@ -88,7 +90,7 @@ function buildComponent(comp, parentType = null) {
     $Name: comp.$Name,
     $Type: actualType,
     $Version: actualDef ? actualDef.version : (def ? def.version : '1'),
-    Uuid: comp.Uuid || ('-' + Math.floor(Math.random() * 1000000000)),
+    Uuid: comp.Uuid || ('-' + (crypto.getRandomValues(new Uint32Array(1))[0] % 1000000000)),
   };
 
   // Add all explicitly-set properties

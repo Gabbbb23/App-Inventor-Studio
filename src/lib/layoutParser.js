@@ -23,6 +23,7 @@ const TYPE_ALIASES = {
   'Picker': 'ListPicker',
   'DB': 'TinyDB',
   'WebDB': 'TinyWebDB',
+  'Firebase': 'FirebaseDB',
 };
 
 // Component types that may contain children.
@@ -30,6 +31,7 @@ const LAYOUT_TYPES = new Set([
   'VerticalArrangement', 'HorizontalArrangement',
   'VerticalScrollArrangement', 'HorizontalScrollArrangement',
   'TableArrangement',
+  'Map',
 ]);
 
 // ---------------------------------------------------------------------------
