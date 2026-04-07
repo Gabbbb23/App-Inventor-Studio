@@ -762,12 +762,22 @@ when ClearButton.Click {
         code: `var role = "customer"
 var rideStatus = "idle"
 
+// ---- Screen Initialize ----
+
+when Screen1.Initialize {
+  // Initialize both maps by panning to current GPS location
+  call Map1.PanTo(get LocationSensor1.Latitude, get LocationSensor1.Longitude, 15)
+  call Map2.PanTo(get LocationSensor1.Latitude, get LocationSensor1.Longitude, 15)
+}
+
 // ---- Role Switching ----
 
 when CustomerBtn.Click {
   role = "customer"
   set CustomerPanel.Visible = true
   set DriverPanel.Visible = false
+  // Force map to refresh by panning to current location
+  call Map1.PanTo(get LocationSensor1.Latitude, get LocationSensor1.Longitude, 15)
 }
 
 when DriverBtn.Click {
@@ -775,6 +785,8 @@ when DriverBtn.Click {
   set CustomerPanel.Visible = false
   set DriverPanel.Visible = true
   call CloudDB1.GetValue("ride_status", "idle")
+  // Force map to refresh by panning to current location
+  call Map2.PanTo(get LocationSensor1.Latitude, get LocationSensor1.Longitude, 15)
 }
 
 // ---- GPS Location Updates ----
