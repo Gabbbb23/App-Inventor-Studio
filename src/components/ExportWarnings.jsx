@@ -45,6 +45,43 @@ const VALIDATION_RULES = [
       };
     },
   },
+  {
+    id: 'clouddb-projectid',
+    check(components) {
+      const found = [];
+      function walk(comps) {
+        for (const c of comps) {
+          if (c.$Type === 'CloudDB' && !c.properties?.ProjectID) {
+            found.push(c.$Name);
+          }
+          if (c.children) walk(c.children);
+        }
+      }
+      walk(components);
+      if (found.length === 0) return null;
+      return {
+        id: 'clouddb-projectid',
+        severity: 'error',
+        component: found[0],
+        property: 'ProjectID',
+        title: `${found[0]} is missing a Project ID`,
+        description: 'Without a Project ID, CloudDB cannot store or retrieve data. The Project ID acts as a namespace for your data.',
+        fix: {
+          type: 'text-input',
+          label: 'Project ID',
+          placeholder: 'my-app-project',
+          property: 'ProjectID',
+          componentName: found[0],
+        },
+        instructions: [
+          'Choose a unique Project ID for your app (e.g., "myapp-ridetracker")',
+          'The Project ID is like a namespace - all data is stored under this ID',
+          'Use the default MIT Redis server, or set up your own Redis server',
+          'If using a custom server, you\'ll also need to set the RedisServer and Token properties',
+        ],
+      };
+    },
+  },
 ];
 
 /**

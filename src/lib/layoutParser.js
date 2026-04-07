@@ -24,6 +24,7 @@ export const TYPE_ALIASES = {
   'DB': 'TinyDB',
   'WebDB': 'TinyWebDB',
   'Firebase': 'FirebaseDB',
+  'Cloud': 'CloudDB',
 };
 
 // Component types that may contain children.

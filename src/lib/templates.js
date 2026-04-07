@@ -513,7 +513,7 @@ when ClearButton.Click {
   {
     id: 'ridetracker',
     name: 'Ride Tracker',
-    description: 'Location-based ride booking with Firebase real-time updates',
+    description: 'Location-based ride booking with CloudDB real-time updates',
     icon: '🚗',
     screens: [
       {
@@ -738,10 +738,10 @@ when ClearButton.Click {
             children: []
           },
           {
-            $Name: 'FirebaseDB1',
-            $Type: 'FirebaseDB',
+            $Name: 'CloudDB1',
+            $Type: 'CloudDB',
             Uuid: '-641',
-            properties: { FirebaseURL: '', ProjectBucket: 'ridetracker' },
+            properties: { ProjectID: 'ridetracker', RedisServer: 'DEFAULT', Token: '' },
             children: []
           },
           {
@@ -774,7 +774,7 @@ when DriverBtn.Click {
   role = "driver"
   set CustomerPanel.Visible = false
   set DriverPanel.Visible = true
-  call FirebaseDB1.GetValue("ride_status", "idle")
+  call CloudDB1.GetValue("ride_status", "idle")
 }
 
 // ---- GPS Location Updates ----
@@ -791,15 +791,15 @@ when LocationSensor1.LocationChanged(latitude, longitude, altitude, speed) {
   }
 }
 
-// ---- Push Location to Firebase ----
+// ---- Push Location to CloudDB ----
 
 when Clock1.Timer {
   if role == "customer" {
-    call FirebaseDB1.StoreValue("cust_lat", join("", get LocationSensor1.Latitude))
-    call FirebaseDB1.StoreValue("cust_lng", join("", get LocationSensor1.Longitude))
+    call CloudDB1.StoreValue("cust_lat", join("", get LocationSensor1.Latitude))
+    call CloudDB1.StoreValue("cust_lng", join("", get LocationSensor1.Longitude))
   } else {
-    call FirebaseDB1.StoreValue("drv_lat", join("", get LocationSensor1.Latitude))
-    call FirebaseDB1.StoreValue("drv_lng", join("", get LocationSensor1.Longitude))
+    call CloudDB1.StoreValue("drv_lat", join("", get LocationSensor1.Latitude))
+    call CloudDB1.StoreValue("drv_lng", join("", get LocationSensor1.Longitude))
   }
 }
 
@@ -808,9 +808,9 @@ when Clock1.Timer {
 when BookBtn.Click {
   if get PickupInput.Text != "" {
     if get DestInput.Text != "" {
-      call FirebaseDB1.StoreValue("ride_pickup", get PickupInput.Text)
-      call FirebaseDB1.StoreValue("ride_dest", get DestInput.Text)
-      call FirebaseDB1.StoreValue("ride_status", "waiting")
+      call CloudDB1.StoreValue("ride_pickup", get PickupInput.Text)
+      call CloudDB1.StoreValue("ride_dest", get DestInput.Text)
+      call CloudDB1.StoreValue("ride_status", "waiting")
       rideStatus = "waiting"
       set StatusLabel.Text = "Waiting for driver..."
       set BookBtn.Enabled = false
@@ -826,7 +826,7 @@ when BookBtn.Click {
 // ---- Customer: Cancel Ride ----
 
 when CancelBtn.Click {
-  call FirebaseDB1.StoreValue("ride_status", "cancelled")
+  call CloudDB1.StoreValue("ride_status", "cancelled")
   rideStatus = "idle"
   set StatusLabel.Text = "Ride cancelled"
   set BookBtn.Enabled = true
@@ -835,7 +835,7 @@ when CancelBtn.Click {
 // ---- Driver: Accept Ride ----
 
 when AcceptBtn.Click {
-  call FirebaseDB1.StoreValue("ride_status", "accepted")
+  call CloudDB1.StoreValue("ride_status", "accepted")
   rideStatus = "accepted"
   set DriverStatusLabel.Text = "En route to pickup"
   call Notifier1.ShowAlert("Ride accepted!")
@@ -844,7 +844,7 @@ when AcceptBtn.Click {
 // ---- Driver: Reject Ride ----
 
 when RejectBtn.Click {
-  call FirebaseDB1.StoreValue("ride_status", "rejected")
+  call CloudDB1.StoreValue("ride_status", "rejected")
   set DriverStatusLabel.Text = "Available"
   set BookingLabel.Text = "No bookings"
   set RideInfoLabel.Text = ""
@@ -853,16 +853,16 @@ when RejectBtn.Click {
 // ---- Driver: Complete Ride ----
 
 when CompleteBtn.Click {
-  call FirebaseDB1.StoreValue("ride_status", "completed")
+  call CloudDB1.StoreValue("ride_status", "completed")
   rideStatus = "idle"
   set DriverStatusLabel.Text = "Available"
   set BookingLabel.Text = "Ride completed!"
   call Notifier1.ShowAlert("Ride completed!")
 }
 
-// ---- Firebase Real-Time Updates ----
+// ---- CloudDB Real-Time Updates ----
 
-when FirebaseDB1.DataChanged(tag, value) {
+when CloudDB1.DataChanged(tag, value) {
   if role == "customer" {
     if tag == "ride_status" {
       if value == "accepted" {
@@ -891,8 +891,8 @@ when FirebaseDB1.DataChanged(tag, value) {
     if tag == "ride_status" {
       if value == "waiting" {
         set BookingLabel.Text = "New ride request!"
-        call FirebaseDB1.GetValue("ride_pickup", "")
-        call FirebaseDB1.GetValue("ride_dest", "")
+        call CloudDB1.GetValue("ride_pickup", "")
+        call CloudDB1.GetValue("ride_dest", "")
         call Notifier1.ShowAlert("New booking!")
       }
       if value == "cancelled" {
@@ -910,7 +910,7 @@ when FirebaseDB1.DataChanged(tag, value) {
   }
 }
 
-when FirebaseDB1.GotValue(tag, value) {
+when CloudDB1.GotValue(tag, value) {
   if tag == "ride_pickup" {
     set RideInfoLabel.Text = join("From: ", value)
   }

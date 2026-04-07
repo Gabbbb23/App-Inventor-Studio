@@ -165,6 +165,32 @@ when FirebaseDB1.DataChanged(tag, value) {
 }`,
   },
   {
+    title: 'CloudDB Real-Time Read/Write',
+    description: 'Store and retrieve data with CloudDB (recommended over Firebase). Uses MIT\'s Redis server by default. DataChanged fires whenever any value updates.',
+    code: `// Store a value
+call CloudDB1.StoreValue("score", join("", score))
+
+// Retrieve a value
+call CloudDB1.GetValue("score", "0")
+
+// Handle retrieved value
+when CloudDB1.GotValue(tag, value) {
+  if tag == "score" {
+    set ScoreLabel.Text = value
+  }
+}
+
+// Real-time updates from other users
+when CloudDB1.DataChanged(tag, value) {
+  if tag == "score" {
+    set ScoreLabel.Text = value
+  }
+}
+
+// Append to a list stored in CloudDB
+call CloudDB1.AppendValueToList("messages", get MessageInput.Text)`,
+  },
+  {
     title: 'GPS Location Tracking',
     description: 'Use LocationSensor to get the device GPS position. LocationChanged fires when the device moves.',
     code: `when LocationSensor1.LocationChanged(latitude, longitude, altitude, speed) {
